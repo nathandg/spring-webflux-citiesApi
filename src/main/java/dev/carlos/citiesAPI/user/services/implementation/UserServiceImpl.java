@@ -7,7 +7,10 @@ import dev.carlos.citiesAPI.user.models.responses.UserResponse;
 import dev.carlos.citiesAPI.user.services.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -19,17 +22,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<UserResponse> save(UserRequestRegister userRequestRegister) {
 
+        //verify if user already exists
+        Mono<User> byUserEmail = userRepository.findByUserEmail(userRequestRegister.getUserEmail());
         ModelMapper modelMapper = new ModelMapper();
 
-        User user = modelMapper.map(userRequestRegister, User.class);
+        return byUserEmail
+                .flatMap(user -> {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User already exists");
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    User userToSave = modelMapper.map(userRequestRegister, User.class);
+                    return userRepository.save(userToSave);
+                }))
+                .map(user -> modelMapper.map(user, UserResponse.class));
+    }
 
-        Mono<User> userSaved$ = userRepository.save(user);
-
-        return userSaved$.flatMap(userSaved -> {
-            UserResponse userResponse = modelMapper.map(userSaved, UserResponse.class);
-            return Mono.just(userResponse);
+    @Override
+    public Flux<UserResponse> findAllUsers() {
+        return userRepository.findAll().map(user -> {
+            ModelMapper modelMapper = new ModelMapper();
+            return modelMapper.map(user, UserResponse.class);
         });
-
     }
 
 }

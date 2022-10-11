@@ -7,6 +7,7 @@ import dev.carlos.citiesAPI.user.models.responses.UserResponse;
 import dev.carlos.citiesAPI.user.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -16,8 +17,15 @@ public class UserController {
     @Autowired
     UserService userService;
 
+    //for testing findAll Users
+    @GetMapping("/users")
+    public Flux<UserResponse> findAllUsers() {
+        return userService.findAllUsers();
+    }
+
     @GetMapping
-    public String getUserById(){
+    public String getUserById()
+    {
         return "Hello World";
     }
 
