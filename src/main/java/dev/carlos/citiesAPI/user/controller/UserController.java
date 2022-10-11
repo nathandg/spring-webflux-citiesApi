@@ -3,6 +3,7 @@ package dev.carlos.citiesAPI.user.controller;
 import dev.carlos.citiesAPI.user.domain.User;
 import dev.carlos.citiesAPI.user.models.requests.login.UserRequestLogin;
 import dev.carlos.citiesAPI.user.models.requests.register.UserRequestRegister;
+import dev.carlos.citiesAPI.user.models.responses.UserLoginResponse;
 import dev.carlos.citiesAPI.user.models.responses.UserResponse;
 import dev.carlos.citiesAPI.user.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +35,14 @@ public class UserController {
         return userService.save(userRequestRegister);
     }
 
-    @PutMapping
-    public String updateUser(){
-        return "Updated";
+    @PostMapping("/login")
+    public Mono<UserLoginResponse> login(@RequestBody UserRequestLogin userRequestLogin){
+        return userService.login(userRequestLogin);
+    }
+
+    @GetMapping("/isAuthorized")
+    public Mono<Boolean> isAuthorized(@RequestHeader("Authorization") String token){
+        System.out.println(token);
+        return userService.isAuthorized(token);
     }
 }

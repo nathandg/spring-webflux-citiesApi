@@ -2,7 +2,9 @@ package dev.carlos.citiesAPI.user.services.implementation;
 
 import dev.carlos.citiesAPI.user.domain.User;
 import dev.carlos.citiesAPI.user.domain.UserRepository;
+import dev.carlos.citiesAPI.user.models.requests.login.UserRequestLogin;
 import dev.carlos.citiesAPI.user.models.requests.register.UserRequestRegister;
+import dev.carlos.citiesAPI.user.models.responses.UserLoginResponse;
 import dev.carlos.citiesAPI.user.models.responses.UserResponse;
 import dev.carlos.citiesAPI.user.services.UserService;
 import org.modelmapper.ModelMapper;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -28,7 +32,7 @@ public class UserServiceImpl implements UserService {
 
         return byUserEmail
                 .flatMap(user -> {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User already exists");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
                 })
                 .switchIfEmpty(Mono.defer(() -> {
                     User userToSave = modelMapper.map(userRequestRegister, User.class);
@@ -43,6 +47,45 @@ public class UserServiceImpl implements UserService {
             ModelMapper modelMapper = new ModelMapper();
             return modelMapper.map(user, UserResponse.class);
         });
+    }
+
+    @Override
+    public Mono<UserLoginResponse> login(UserRequestLogin userRequestLogin) {
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        return userRepository.findByUserEmail(userRequestLogin.getUserEmail())
+                .switchIfEmpty(Mono.defer(() -> {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+                }))
+
+                //what is a different between .map and .flatMap? in this case, I need to use .map or .flatmap?
+                .map(user -> {
+
+                    if (user.getUserEmail().equals(userRequestLogin.getUserEmail()) && user.getUserPassword().equals(userRequestLogin.getUserPassword())){
+                        //generate token
+                        user.setUserToken(UUID.randomUUID().toString());
+                        //save token
+                        userRepository.save(user).subscribe();
+                        //return a responseLogin
+                        return modelMapper.map(user, UserLoginResponse.class);
+
+                    } else {
+                        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+                    }
+                });
+    }
+
+    @Override
+    public Mono<Boolean> isAuthorized(String token) {
+        //verify if token exists
+        return userRepository.findByUserToken(token)
+                //if token is empty, return false
+                .switchIfEmpty(Mono.defer(() -> {
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+                }))
+                //if token exists, return true
+                .map(user -> true);
     }
 
 }

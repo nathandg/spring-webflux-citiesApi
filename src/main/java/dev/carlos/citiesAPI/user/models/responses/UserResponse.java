@@ -13,8 +13,6 @@ public class UserResponse {
     }
 
     //GETTERS AND SETTERS
-
-
     public String getUserName() {
         return userName;
     }

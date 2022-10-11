@@ -12,6 +12,7 @@ public class User {
     private String userPassword;
     private String userUf;
     private String userCity;
+    private String userToken;
 
     //CONSTRUCTOR
 
@@ -19,6 +20,19 @@ public class User {
     }
 
     //GETTERS AND SETTERS
+
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getUserToken() {
+        return userToken;
+    }
+
+    public void setUserToken(String userToken) {
+        this.userToken = userToken;
+    }
 
     public String getUserId() {
         return userId;
