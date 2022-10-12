@@ -1,6 +1,6 @@
 package dev.carlos.citiesAPI.user.controller;
 
-import dev.carlos.citiesAPI.user.domain.User;
+import dev.carlos.citiesAPI.user.models.requests.updated.UserRequestChangeUserName;
 import dev.carlos.citiesAPI.user.models.requests.login.UserRequestLogin;
 import dev.carlos.citiesAPI.user.models.requests.register.UserRequestRegister;
 import dev.carlos.citiesAPI.user.models.responses.UserLoginResponse;
@@ -40,9 +40,8 @@ public class UserController {
         return userService.login(userRequestLogin);
     }
 
-    @GetMapping("/isAuthorized")
-    public Mono<Boolean> isAuthorized(@RequestHeader("Authorization") String token){
-        System.out.println(token);
-        return userService.isAuthorized(token);
+    @PutMapping("/changeUsername")
+    public Mono<UserResponse> changeUsername(@RequestBody UserRequestChangeUserName userChangeUsernameRequest){
+        return userService.changeUsername(userChangeUsernameRequest);
     }
 }

@@ -1,5 +1,6 @@
 package dev.carlos.citiesAPI.user.services;
 
+import dev.carlos.citiesAPI.user.models.requests.updated.UserRequestChangeUserName;
 import dev.carlos.citiesAPI.user.models.requests.login.UserRequestLogin;
 import dev.carlos.citiesAPI.user.models.requests.register.UserRequestRegister;
 import dev.carlos.citiesAPI.user.models.responses.UserLoginResponse;
@@ -14,6 +15,5 @@ public interface UserService {
 
     Mono<UserLoginResponse> login(UserRequestLogin userRequestLogin);
 
-    Mono<Boolean> isAuthorized(String token);
-
+    Mono<UserResponse> changeUsername(UserRequestChangeUserName userChangeUsernameRequest);
 }

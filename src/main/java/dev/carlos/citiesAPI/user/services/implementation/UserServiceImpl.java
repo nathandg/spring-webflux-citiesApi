@@ -2,6 +2,7 @@ package dev.carlos.citiesAPI.user.services.implementation;
 
 import dev.carlos.citiesAPI.user.domain.User;
 import dev.carlos.citiesAPI.user.domain.UserRepository;
+import dev.carlos.citiesAPI.user.models.requests.updated.UserRequestChangeUserName;
 import dev.carlos.citiesAPI.user.models.requests.login.UserRequestLogin;
 import dev.carlos.citiesAPI.user.models.requests.register.UserRequestRegister;
 import dev.carlos.citiesAPI.user.models.responses.UserLoginResponse;
@@ -77,15 +78,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<Boolean> isAuthorized(String token) {
-        //verify if token exists
-        return userRepository.findByUserToken(token)
-                //if token is empty, return false
+    public Mono<UserResponse> changeUsername(UserRequestChangeUserName userChangeUsernameRequest) {
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        return userRepository.findByUserToken(userChangeUsernameRequest.getUserToken())
                 .switchIfEmpty(Mono.defer(() -> {
                     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
                 }))
-                //if token exists, return true
-                .map(user -> true);
+                .map(user -> {
+                    user.setUserName(userChangeUsernameRequest.getUserName());
+                    userRepository.save(user).subscribe();
+                    return modelMapper.map(user, UserResponse.class);
+                });
+
     }
 
 }
